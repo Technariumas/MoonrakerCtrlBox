@@ -84,6 +84,27 @@ void cue_standby() {
   digitalWrite(STATE_CUE, HIGH);
   }
 
+void cue_next() {
+  if (state == "CUE") {
+    state == "CUE1";
+    digitalWrite(CUE1, HIGH);
+    }
+  if (state == "CUE1") {
+    state == "CUE2";
+    digitalWrite(CUE1, LOW);
+    digitalWrite(CUE2, HIGH);
+    }
+  if (state == "CUE2") {
+    state == "IDLE";
+    digitalWrite(CUE2, LOW);
+    digitalWrite(CUE3, HIGH);
+    }
+  if (state == "IDLE") {
+    digitalWrite(CUE3, LOW);    
+    }
+  }
+  
+
 void loop() {
   sCmd.readSerial();
   debouncer.update();
