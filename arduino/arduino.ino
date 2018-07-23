@@ -73,14 +73,15 @@ void setup() {
 
   //Serial command list
   sCmd.setDefaultHandler(unrecognized); 
-  sCmd.addCommand("CUE", setCue); 
-  sCmd.addCommand("OFF", turnOff);
-  sCmd.addCommand("VOLT", updateVoltmeter);
+  sCmd.addCommand("CUE_WAITING", setCue); 
+  sCmd.addCommand("SWITCH_CUE", switch_on_cue);
+  sCmd.addCommand("VOLTM", updateVoltmeter);
   sCmd.addCommand("SERVO1", updateServo1);
   sCmd.addCommand("SERVO2", updateServo2);
   sCmd.addCommand("SERVO3", updateServo3); 
   sCmd.addCommand("COMPASS", updateCompass);      
-  sCmd.addCommand("SWITCH_CUE", switch_on_cue);
+
+  sCmd.addCommand("OFF", turnOff);
   Serial.begin(115200);
 }
 
@@ -247,9 +248,9 @@ void loop() {
   if (state == "ON") {
     update_state();
     }
-  if (state == "CUE_WAITING") {
-      update_state();
-  }
+  //if (state == "CUE_WAITING") {
+   //   update_state();
+  //}
   if (state == "CUE_1_RED_OFF") {
       update_state();
       digitalWrite(RED1, LOW);
