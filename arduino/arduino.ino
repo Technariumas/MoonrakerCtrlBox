@@ -63,6 +63,7 @@ void setup() {
   //Output pins
   pinMode(SERVO1, OUTPUT);
   servo1.attach(SERVO1); 
+  servoEaser1.useMicroseconds( true ); 
   servoEaser1.begin(servo1, 20);   
 
   //servoEaser1.easeTo(0, 500);
@@ -112,50 +113,59 @@ void setup() {
 
 void updateServo1() {
       if (state != "OFF") {
-        int s;
-        char *arg;
-        arg = sCmd.next();
-        if (arg != NULL) {
-          s = atoi(arg);
-          Serial.print("Servo1: ");
-          Serial.println(servoPos1);   
-          servoPos1 = s;//map(s, -14, 166, 0, 127);
-          servoEaser1.easeTo( servoPos1, 300 );
-          }
+          int s;
+          char *arg;
+          arg = sCmd.next();
+          if (arg != NULL) {
+            s = atoi(arg);
+            servoPos1 = s;//map(s, -14, 166, 0, 127);
+
+            Serial.print("Servo1: ");
+            Serial.println(servoPos1);
+            //if (servoEaser1.hasArrived()) {  
+              servoEaser1.easeTo( servoPos1, 500 );
+          //}
+        }
           //else {Serial.println("NO SERVO1 ARG");}
     }
 }
 
 void updateServo2() {
       if (state != "OFF") {
+        if (servoEaser2.hasArrived()) { 
         int s;
         char *arg;
         arg = sCmd.next();
         if (arg != NULL) {
           s = atoi(arg);
           servoPos2 = s;//constrain(s, -14, 166);
-          Serial.print("Servo: ");
-          Serial.println(servoPos2);
-          servoEaser2.easeTo( servoPos2, 300 );
-          }
+             
+              //servoEaser2.easeTo( servoPos2, 100 );
+              servo2.write(servoPos2);
+              Serial.print("Servo2 : ");
+              Serial.println(servoPos2);
+         }
+        }
           //else {Serial.println("NO SERVO1 ARG");}
     }
 }
 
 void updateServo3() {
       if (state != "OFF") {
-        int s;
-        char *arg;
-        arg = sCmd.next();
-        if (arg != NULL) {
-          s = atoi(arg);   
-          //Serial.println(s);
-          servoPos3 = s;//constrain(s, -14, 166);
-          Serial.print("Servo3: ");
-          Serial.println(servoPos3);
-          servoEaser3.easeTo( servoPos3, 300 );
+        if (servoEaser3.hasArrived()) {
+         int s;
+          char *arg;
+          arg = sCmd.next();
+          if (arg != NULL) {
+            s = atoi(arg);   
+            //Serial.println(s);
+            servoPos3 = s;//constrain(s, -14, 166);
+            Serial.print("Servo3: ");
+            Serial.println(servoPos3);
+            servoEaser3.easeTo( servoPos3, 100 );
           }
           //else {Serial.println("NO SERVO1 ARG");}
+    }
     }
 }
 

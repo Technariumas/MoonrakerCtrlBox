@@ -33,11 +33,11 @@ int fader3 = 0;
 int compass = 0;
 int voltm = 0;
 
-int fader_low = -14;
+int fader_low = 0;
 int fader_high = 166;
 
-int voltm_low = -46;
-int voltm_high = 183;
+int voltm_low = 0;
+int voltm_high = 32;
 
 
 int blinkRate = 300;
@@ -47,9 +47,9 @@ String state = "OFF";//TODO -- replace
 int on_state = LOW;
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
-ResponsiveAnalogRead fader1_pot(FADER1, true);
-ResponsiveAnalogRead fader2_pot(FADER2, true);
-ResponsiveAnalogRead fader3_pot(FADER3, true);
+ResponsiveAnalogRead fader1_pot(FADER1, false, 0.05);
+ResponsiveAnalogRead fader2_pot(FADER2, true, 0.05);
+ResponsiveAnalogRead fader3_pot(FADER3, true, 0.05);
 ResponsiveAnalogRead voltm_pot(VOLTMETER, true);
 ResponsiveAnalogRead comp_pot(COMPASS, true);
 void setup() {
