@@ -28,27 +28,22 @@ SerialCommand sCmd;
 
 //initial indicator values
 int fader1 = 0;
-int old_fader1 = 0;
 int fader2 = 0;
-int old_fader2 = 0;
 int fader3 = 0;
-int old_fader3 = 0;
 int compass = 0;
-int old_compass = 0;
 int voltm = 0;
-int old_voltm = 0;
 
 int fader_low = -14;
 int fader_high = 166;
 
-int voltm_low = 0;
-int voltm_high = 255;
+int voltm_low = -46;
+int voltm_high = 183;
 
 
 int blinkRate = 300;
 int ledState = LOW;
 
-String state = "ON";//TODO -- replace
+String state = "OFF";//TODO -- replace
 int on_state = LOW;
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
@@ -56,7 +51,7 @@ ResponsiveAnalogRead fader1_pot(FADER1, true);
 ResponsiveAnalogRead fader2_pot(FADER2, true);
 ResponsiveAnalogRead fader3_pot(FADER3, true);
 ResponsiveAnalogRead voltm_pot(VOLTMETER, true);
-
+ResponsiveAnalogRead comp_pot(COMPASS, true);
 void setup() {
 debouncer.attach(STATE_SWITCH, INPUT);
 debouncerCue.attach(CUE_SWITCH, INPUT);
@@ -69,11 +64,11 @@ pinMode(CUE2, OUTPUT);
 pinMode(CUE3, OUTPUT); 
 
 //Serial command list
+sCmd.setDefaultHandler(unrecognized); 
 sCmd.addCommand("OFF", turnOff);
 sCmd.addCommand("ON", turnOn);
-sCmd.addCommand("CUE_WAITING", cue_standby);
-turnOn();
-Serial.begin(115200);
+//sCmd.addCommand("CUE_WAITING", cue_standby);
+Serial.begin(9600);
 }
 
 void all_leds_off() {
@@ -88,18 +83,18 @@ void turnOff() {
   //all LEDs off
   all_leds_off();
   state = "OFF";
+  //Serial.println("OFF state");
   }
 
 void turnOn() {
   state = "ON";
-  Serial.println("ON");
+  //Serial.println("ON state");
   digitalWrite(STATE_ON, HIGH);
-  Serial.println("LED ON");  
   }
 
 void switch_state() {
     if (state == "ON") {
-      Serial.println("TOGGLE to CUE mode");
+      //Serial.println("TOGGLE to CUE mode");
       cue_standby();
     }
   }
@@ -153,6 +148,10 @@ void cue_next() {
 
 
 void loop() {
+   
+  sCmd.readSerial();
+  
+  if (state != "OFF") {
   fader1_pot.update();
   if(fader1_pot.hasChanged()) {
     updateF1();
@@ -169,11 +168,13 @@ void loop() {
   if(voltm_pot.hasChanged()) {
     updateVoltm();
     }  
-
-  
+ comp_pot.update();
+  if(comp_pot.hasChanged()) {
+    updateCompass();
+    }  
+  }
   //updateCompass();
- 
-  sCmd.readSerial();
+
   debouncer.update();
   if ( debouncer.fell() ) {
     Serial.println(state);
@@ -225,42 +226,58 @@ void loop() {
 // ****************** Analogue controls ********
 
 void updateF1() {
-  
   int f1 = fader1_pot.getValue();
-  fader1 = map(f1, 0, 864, fader_high, fader_low);
+  //Serial.println("Raw ServoPot1 value: ");
+  //Serial.println(f1);
+
+  fader1 = map(f1, 0, 1022, fader_high, fader_low);
   Serial.print("SERVO1 ");
   Serial.println(fader1);
   }  
 
 void updateF2() {
   int f2 = fader2_pot.getValue();
-  fader2 = map(f2, 0, 864, fader_high, fader_low);
+  //Serial.println("Raw ServoPot2 value: ");
+  //Serial.println(f2);
+
+  fader2 = map(f2, 0, 1022, fader_high, fader_low);
   Serial.print("SERVO2 ");
   Serial.println(fader2);
   } 
 
 void updateF3() {
   int f3 = fader3_pot.getValue();
-  fader3 = map(f3, 0, 864, fader_high, fader_low);
+  //Serial.println("Raw ServoPot3 value: ");
+  //Serial.println(f3);
+  fader3 = map(f3, 0, 1022, fader_high, fader_low);
   Serial.print("SERVO3 ");
   Serial.println(fader3);
   } 
 
 void updateVoltm() {
   int v = voltm_pot.getValue();
-  voltm = map(v, 0, 864, voltm_high, voltm_low);
+  //Serial.println("Raw voltm value: ");
+  //Serial.println(v);
+
+  voltm = map(v, 0, 1022, 32, 0);
   Serial.print("VOLTM  ");
   Serial.println(voltm);
   } 
 
 void updateCompass() {
-  int c = analogRead(COMPASS);
-  old_compass = compass;
-  compass = map(c, 0, 864, 32, 0);
-  if (compass!= old_compass) {
-    Serial.print("COMPASS ");
-    Serial.println(compass);
-    }
+  int c = comp_pot.getValue();
+  Serial.println("Raw compass value: ");
+  Serial.println(c);
+  compass = map(c, 0, 1023, 270, 0);
+  Serial.print("COMPASS ");
+  Serial.println(compass);
   } 
 
+
+
+void unrecognized(const char *command) {
+  Serial.println("Unrecognized command: ");
+  Serial.println(command);
+  Serial.println("EOC");
+}
 

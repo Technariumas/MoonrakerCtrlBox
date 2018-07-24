@@ -17,11 +17,13 @@ ServoEaser servoEaser2;
 
 Servo servo3;
 ServoEaser servoEaser3;
-Servo compass;
 
-int servoPos1 = 150;    //initial slider position
-int servoPos2 = 150;
-int servoPos3 = 150;
+Servo compass;
+ServoEaser compassEaser;
+
+int servoPos1 = 0;    //initial slider position
+int servoPos2 = 0;
+int servoPos3 = 0;
 int compass_pos = 0;
 int volt_pos = 0;
 
@@ -49,8 +51,7 @@ int volt_pos = 0;
 #define MAIN_SWITCH 12
 #define PASSIVE_LEDS 13
 
-int on_state = LOW;
-String state = "ON";
+String state = "OFF";
 unsigned long previousMillis = 0;        
 const long updateInt = 300; 
 
@@ -63,17 +64,23 @@ void setup() {
   pinMode(SERVO1, OUTPUT);
   servo1.attach(SERVO1); 
   servoEaser1.begin(servo1, 20);   
-  servoEaser2.begin(servo2, 20);   
-  servoEaser3.begin(servo3, 20);   
 
+  //servoEaser1.easeTo(0, 500);
   //servoEaser.useMicroseconds( true );  // fine-control mode
   //
   
   pinMode(SERVO2, OUTPUT); 
   servo2.attach(SERVO2);
+  servoEaser2.begin(servo2, 20);    
+  
   pinMode(SERVO3, OUTPUT);
   servo3.attach(SERVO3); 
-  pinMode(COMPASS_PIN, OUTPUT); 
+  servoEaser3.begin(servo3, 20);
+    
+  pinMode(COMPASS_PIN, OUTPUT);
+  compass.attach(COMPASS_PIN); 
+  compassEaser.begin(compass, 20);
+ 
   pinMode(DIR_PIN, OUTPUT);
     
   pinMode(GREEN1, OUTPUT); 
@@ -88,7 +95,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   //Serial command list
-  sCmd.setDefaultHandler(unrecognized); 
+  //sCmd.setDefaultHandler(unrecognized); 
   sCmd.addCommand("CUE_WAITING", setCue); 
   sCmd.addCommand("SWITCH_CUE", switch_on_cue);
   sCmd.addCommand("VOLTM", updateVoltmeter);
@@ -97,8 +104,8 @@ void setup() {
   sCmd.addCommand("SERVO3", updateServo3); 
   sCmd.addCommand("COMPASS", updateCompass);      
 
-  sCmd.addCommand("OFF", turnOff);
-  Serial.begin(115200);
+  //sCmd.addCommand("OFF", turnOff);
+  Serial.begin(9600);
 }
 
 
@@ -109,8 +116,10 @@ void updateServo1() {
         char *arg;
         arg = sCmd.next();
         if (arg != NULL) {
-          s = atoi(arg);   
-          servoPos1 = constrain(s, -14, 166);
+          s = atoi(arg);
+          Serial.print("Servo1: ");
+          Serial.println(servoPos1);   
+          servoPos1 = s;//map(s, -14, 166, 0, 127);
           servoEaser1.easeTo( servoPos1, 300 );
           }
           //else {Serial.println("NO SERVO1 ARG");}
@@ -123,8 +132,10 @@ void updateServo2() {
         char *arg;
         arg = sCmd.next();
         if (arg != NULL) {
-          s = atoi(arg);   
-          servoPos2 = constrain(s, -14, 166);
+          s = atoi(arg);
+          servoPos2 = s;//constrain(s, -14, 166);
+          Serial.print("Servo: ");
+          Serial.println(servoPos2);
           servoEaser2.easeTo( servoPos2, 300 );
           }
           //else {Serial.println("NO SERVO1 ARG");}
@@ -138,8 +149,11 @@ void updateServo3() {
         arg = sCmd.next();
         if (arg != NULL) {
           s = atoi(arg);   
-          servoPos3 = constrain(s, -14, 166);
-          servoEaser3.easeTo( servoPos3, 1000 );
+          //Serial.println(s);
+          servoPos3 = s;//constrain(s, -14, 166);
+          Serial.print("Servo3: ");
+          Serial.println(servoPos3);
+          servoEaser3.easeTo( servoPos3, 300 );
           }
           //else {Serial.println("NO SERVO1 ARG");}
     }
@@ -152,7 +166,9 @@ void updateCompass() {
         arg = sCmd.next();
         if (arg != NULL) {
          s = atoi(arg);   
-         compass_pos = map(s, 0, 170, -170, 170);
+         compass_pos = s;//map(s, 0, 166, 0, 360);
+         Serial.print("Compass: ");
+         Serial.println(compass_pos);
          compass.write(compass_pos);
       }
       else {Serial.println("NO COMPASS ARG");}
@@ -161,12 +177,14 @@ void updateCompass() {
 
 void updateVoltmeter() {
   if (state != "OFF") {
+      Serial.println(state);
       int v;
       char *arg;
       arg = sCmd.next();
       if (arg != NULL) {
-        v = atoi(arg);    // Converts a char string to an 
-        volt_pos = v;
+        v = atoi(arg);   
+        volt_pos = map(v, 0, 32, 0, 220);
+        //volt_pos = constrain(volt_pos, 0, 220);
         analogWrite(VOLTMETER, volt_pos);
         Serial.println(volt_pos);
       }
@@ -216,26 +234,23 @@ void red_leds_on() {
   digitalWrite(RED3, HIGH);
   }
 
-
-void toggle_main_switch() {
-    on_state = !on_state;
-    if (on_state == LOW) {
-      indicators_off();
-      state = "OFF";
-      digitalWrite(BACKLIGHT, LOW); //power LEDs and backlight off
-      digitalWrite(PASSIVE_LEDS, LOW);
-      active_leds_off();
-      Serial.println("OFF");
-      }
-    if (on_state == HIGH) {
+void main_switch_on() {
       state = "ON";
       red_leds_on();
       digitalWrite(BACKLIGHT, HIGH); //power LEDs and backlight on
       digitalWrite(PASSIVE_LEDS, HIGH);
       indicators_on();
       Serial.println("ON");
+  }
+
+void main_switch_off() {
+      indicators_off();
+      state = "OFF";
+      Serial.println("OFF");
+      digitalWrite(BACKLIGHT, LOW); //power LEDs and backlight off
+      digitalWrite(PASSIVE_LEDS, LOW);
+      active_leds_off();
       }
-    }
 
 void blink_LEDS() {
   digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on 
@@ -253,15 +268,22 @@ void update_state() {
 }
 
 void loop() {
-  servoEaser1.update();
-  servoEaser2.update();
-  servoEaser3.update();
-  analogWrite(VOLTMETER, 50);
+  if (state != "OFF") {
+    servoEaser1.update();
+    servoEaser2.update();
+    servoEaser3.update();
+    compassEaser.update();
+    
+  }
   sCmd.readSerial();
   debouncer.update();
-  if ( debouncer.fell() ) {
-    toggle_main_switch();
+  if ( debouncer.rose() ) {
+    main_switch_on();
     }
+  if ( debouncer.fell() ) {
+    main_switch_off();
+    }
+
   if (state == "OFF") {
     //update_state();
     }
@@ -296,7 +318,7 @@ void loop() {
     digitalWrite(GREEN3, HIGH); 
     }
   if (state == "IDLE") {
-   update_state();
+   //update_state();
     }     
 }
 
@@ -341,4 +363,5 @@ void switch_on_cue() {
     }
   }  
   
+
 
