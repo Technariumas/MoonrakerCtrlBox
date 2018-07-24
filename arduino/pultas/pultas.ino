@@ -1,4 +1,4 @@
-
+#include <ResponsiveAnalogRead.h>
 #include <Bounce2.h>
 #include <SerialCommand.h>
 
@@ -22,7 +22,7 @@ SerialCommand sCmd;
 #define FADER2 A3
 #define FADER3 A2
 #define COMPASS A1 
-#define VOLTM A0
+#define VOLTMETER A0
 
 
 
@@ -38,8 +38,12 @@ int old_compass = 0;
 int voltm = 0;
 int old_voltm = 0;
 
-int fader_low = 3;
-int fader_high = 170;
+int fader_low = -14;
+int fader_high = 166;
+
+int voltm_low = 0;
+int voltm_high = 255;
+
 
 int blinkRate = 300;
 int ledState = LOW;
@@ -48,6 +52,10 @@ String state = "ON";//TODO -- replace
 int on_state = LOW;
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
+ResponsiveAnalogRead fader1_pot(FADER1, true);
+ResponsiveAnalogRead fader2_pot(FADER2, true);
+ResponsiveAnalogRead fader3_pot(FADER3, true);
+ResponsiveAnalogRead voltm_pot(VOLTMETER, true);
 
 void setup() {
 debouncer.attach(STATE_SWITCH, INPUT);
@@ -64,9 +72,8 @@ pinMode(CUE3, OUTPUT);
 sCmd.addCommand("OFF", turnOff);
 sCmd.addCommand("ON", turnOn);
 sCmd.addCommand("CUE_WAITING", cue_standby);
-
-Serial.begin(115200);
 turnOn();
+Serial.begin(115200);
 }
 
 void all_leds_off() {
@@ -106,38 +113,38 @@ void cue_standby() {
 
 void cue_next() {
   if (state == "CUE") {
-    Serial.println("CUE1_RED_LED_OFF");
+    Serial.println("SWITCH_CUE");
     state = "CUE1_RED_LED_OFF";
     }
   else if (state == "CUE1_RED_LED_OFF") {
-    Serial.println("CUE1_GREEN_LED_ON");
+    Serial.println("SWITCH_CUE");
     state = "CUE1_GREEN_LED_ON";
     digitalWrite(CUE1, HIGH);
     //digitalWrite(CUE2, HIGH);
     }
   else if (state == "CUE1_GREEN_LED_ON") {
-    Serial.println("CUE2_RED_LED_OFF");
+    Serial.println("SWITCH_CUE");
     state = "CUE2_RED_LED_OFF";
     digitalWrite(CUE1, LOW);
     }
   else if (state == "CUE2_RED_LED_OFF") {
-    Serial.println("CUE2_GREEN_LED_ON");
+    Serial.println("SWITCH_CUE");
     state = "CUE2_GREEN_LED_ON";
     digitalWrite(CUE2, HIGH);
     }
   else if (state == "CUE2_GREEN_LED_ON") {
-    Serial.println("CUE3_RED_LED_OFF");
+    Serial.println("SWITCH_CUE");
     state = "CUE3_RED_LED_OFF";
     digitalWrite(CUE2, LOW);
     //digitalWrite(CUE2, HIGH);
     }
   else if (state == "CUE3_RED_LED_OFF") {
-    Serial.println("CUE3_GREEN_LED_ON");
+    Serial.println("SWITCH_CUE");
     state = "CUE3_GREEN_LED_ON";
     digitalWrite(CUE3, HIGH);
     }
   else if (state == "CUE3_GREEN_LED_ON") {
-    Serial.println("IDLE");
+    Serial.println("SWITCH_CUE");
     state = "IDLE";
     digitalWrite(CUE3, LOW);
     }
@@ -146,10 +153,24 @@ void cue_next() {
 
 
 void loop() {
-  //updateF1();
-  //updateF2();
-  //updateF3();
-  //updateVoltm();
+  fader1_pot.update();
+  if(fader1_pot.hasChanged()) {
+    updateF1();
+    }
+  fader2_pot.update();
+  if(fader2_pot.hasChanged()) {
+    updateF2();
+    }
+  fader3_pot.update();
+  if(fader3_pot.hasChanged()) {
+    updateF3();
+    }  
+ voltm_pot.update();
+  if(voltm_pot.hasChanged()) {
+    updateVoltm();
+    }  
+
+  
   //updateCompass();
  
   sCmd.readSerial();
@@ -204,33 +225,32 @@ void loop() {
 // ****************** Analogue controls ********
 
 void updateF1() {
-  int f1 = analogRead(FADER1);
-  old_fader1 = fader1;
+  
+  int f1 = fader1_pot.getValue();
   fader1 = map(f1, 0, 864, fader_high, fader_low);
-  if (fader1 != old_fader1) {
-    Serial.print("SERVO1 ");
-    Serial.println(fader1);
-    }
+  Serial.print("SERVO1 ");
+  Serial.println(fader1);
   }  
 
 void updateF2() {
-  int f2 = analogRead(FADER2);
-  old_fader2 = fader2;
+  int f2 = fader2_pot.getValue();
   fader2 = map(f2, 0, 864, fader_high, fader_low);
-  if (fader2 != old_fader2) {
-    Serial.print("SERVO2 ");
-    Serial.println(fader2);
-    }
+  Serial.print("SERVO2 ");
+  Serial.println(fader2);
   } 
 
 void updateF3() {
-  int f3 = analogRead(FADER3);
-  old_fader3 = fader3;
+  int f3 = fader3_pot.getValue();
   fader3 = map(f3, 0, 864, fader_high, fader_low);
-  if (fader3 != old_fader3) {
-    Serial.print("SERVO3 ");
-    Serial.println(fader3);
-    }
+  Serial.print("SERVO3 ");
+  Serial.println(fader3);
+  } 
+
+void updateVoltm() {
+  int v = voltm_pot.getValue();
+  voltm = map(v, 0, 864, voltm_high, voltm_low);
+  Serial.print("VOLTM  ");
+  Serial.println(voltm);
   } 
 
 void updateCompass() {
@@ -243,13 +263,4 @@ void updateCompass() {
     }
   } 
 
-void updateVoltm() {
-  int v = analogRead(VOLTM);
-  old_voltm = voltm;
-  voltm = map(v, 0, 864, 32, 0);
-  if (voltm!= old_voltm) {
-    Serial.print("VOLTM ");
-    Serial.println(voltm);
-    }
-  } 
 

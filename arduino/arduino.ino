@@ -9,16 +9,19 @@ SerialCommand sCmd;
 int servoFrameMillis = 20;  // minimum time between servo updates
 
 Servo servo1; 
-ServoEaser servoEaser;
+ServoEaser servoEaser1;
 unsigned long lastMillis;
 
 Servo servo2;
+ServoEaser servoEaser2;
+
 Servo servo3;
+ServoEaser servoEaser3;
 Servo compass;
 
-int servoPos1 = 0;    //initial slider position
-int servoPos2 = 0;
-int servoPos3 = 0;
+int servoPos1 = 150;    //initial slider position
+int servoPos2 = 150;
+int servoPos3 = 150;
 int compass_pos = 0;
 int volt_pos = 0;
 
@@ -32,9 +35,9 @@ int volt_pos = 0;
 
 //Six control LEDs
 
-#define GREEN1 2
+#define GREEN1 4
 #define GREEN2 3
-#define GREEN3 4
+#define GREEN3 2
 #define RED1 7
 #define RED2 6
 #define RED3 5
@@ -59,9 +62,12 @@ void setup() {
   //Output pins
   pinMode(SERVO1, OUTPUT);
   servo1.attach(SERVO1); 
-  servoEaser.begin(servo1, 20);   
-  servoEaser.useMicroseconds( true );  // fine-control mode
-  servoEaser.easeTo(170, 3000);
+  servoEaser1.begin(servo1, 20);   
+  servoEaser2.begin(servo2, 20);   
+  servoEaser3.begin(servo3, 20);   
+
+  //servoEaser.useMicroseconds( true );  // fine-control mode
+  //
   
   pinMode(SERVO2, OUTPUT); 
   servo2.attach(SERVO2);
@@ -98,18 +104,14 @@ void setup() {
 
 
 void updateServo1() {
-      servoEaser.update();
-      Serial.println("updateServo1 called");
       if (state != "OFF") {
         int s;
         char *arg;
         arg = sCmd.next();
         if (arg != NULL) {
           s = atoi(arg);   
-          servoPos1 = s;//constrain(s, 0, 170);
-          Serial.print("easing to angle:");
-          Serial.println(servoPos1);
-          servoEaser.easeTo( servoPos1, 1000 );
+          servoPos1 = constrain(s, -14, 166);
+          servoEaser1.easeTo( servoPos1, 300 );
           }
           //else {Serial.println("NO SERVO1 ARG");}
     }
@@ -121,13 +123,12 @@ void updateServo2() {
         char *arg;
         arg = sCmd.next();
         if (arg != NULL) {
-         s = atoi(arg);   
-         servoPos2 = s;
-         Serial.println(s);
-         servo2.write(servoPos2);
-      }
-      else {Serial.println("NO SERVO2 ARG");}
-    }  
+          s = atoi(arg);   
+          servoPos2 = constrain(s, -14, 166);
+          servoEaser2.easeTo( servoPos2, 300 );
+          }
+          //else {Serial.println("NO SERVO1 ARG");}
+    }
 }
 
 void updateServo3() {
@@ -136,12 +137,12 @@ void updateServo3() {
         char *arg;
         arg = sCmd.next();
         if (arg != NULL) {
-         s = atoi(arg);   
-         servoPos3 = s;
-         servo3.write(servoPos3);
-      }
-      else {Serial.println("NO SERVO3 ARG");}
-    }  
+          s = atoi(arg);   
+          servoPos3 = constrain(s, -14, 166);
+          servoEaser3.easeTo( servoPos3, 1000 );
+          }
+          //else {Serial.println("NO SERVO1 ARG");}
+    }
 }
 
 void updateCompass() {
@@ -193,19 +194,19 @@ void active_leds_off() {
   }
 
 void indicators_off() {
-   servo1.write(0);
-   servo2.write(0);
-   servo3.write(0);
+   servoEaser1.easeTo(0, 500);
+   servoEaser2.easeTo(0, 500);
+   servoEaser3.easeTo(0, 500);
    compass.write(0);
    analogWrite(VOLTMETER, 0);
   }
 
 void indicators_on() {
-  servo1.write(servoPos1);
-  servo2.write(servoPos2);
-  servo3.write(servoPos3);
-  compass.write(compass_pos);
-  analogWrite(VOLTMETER, volt_pos);
+   servoEaser1.easeTo(servoPos1, 300);
+   servoEaser2.easeTo(servoPos2, 300);
+   servoEaser3.easeTo(servoPos3, 300);  
+   compass.write(compass_pos);
+   analogWrite(VOLTMETER, volt_pos);
   }
     
 
@@ -224,6 +225,7 @@ void toggle_main_switch() {
       digitalWrite(BACKLIGHT, LOW); //power LEDs and backlight off
       digitalWrite(PASSIVE_LEDS, LOW);
       active_leds_off();
+      Serial.println("OFF");
       }
     if (on_state == HIGH) {
       state = "ON";
@@ -231,6 +233,7 @@ void toggle_main_switch() {
       digitalWrite(BACKLIGHT, HIGH); //power LEDs and backlight on
       digitalWrite(PASSIVE_LEDS, HIGH);
       indicators_on();
+      Serial.println("ON");
       }
     }
 
@@ -250,8 +253,10 @@ void update_state() {
 }
 
 void loop() {
-  
-  //updateServo1();
+  servoEaser1.update();
+  servoEaser2.update();
+  servoEaser3.update();
+  analogWrite(VOLTMETER, 50);
   sCmd.readSerial();
   debouncer.update();
   if ( debouncer.fell() ) {
@@ -262,17 +267,9 @@ void loop() {
     }
   if (state == "ON") {
     //update_state();
-    //servo1Easer.easeTo(20, 2000);
-    //servo2.write(150);
-    //servo3.write(150);
-    //delay(3000);
-    //servo1Easer.easeTo(170, 2000);
-    //servo2.write(120);
-    //servo3.write(120);
-
     }
   if (state == "CUE_WAITING") {
-      update_state();
+      //update_state();
   }
   if (state == "CUE_1_RED_OFF") {
       //update_state();
@@ -309,13 +306,14 @@ void printCurrPos() {
     if( (long)(millis() - nextPrintTime) >= 0 ) {
         nextPrintTime += 200; // 100 millisecs between print statements
         Serial.print("currPos: ");
-        Serial.println( servoEaser.getCurrPos() );
+        Serial.println( servoEaser1.getCurrPos() );
     }
 }
 
 void unrecognized(const char *command) {
-  Serial.println("What?");
+  Serial.println("Unrecognized command: ");
   Serial.println(command);
+  Serial.println("EOC");
 }
 
 
