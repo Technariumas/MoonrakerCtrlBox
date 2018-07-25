@@ -66,16 +66,15 @@ void setup() {
   servoEaser1.useMicroseconds( true ); 
   servoEaser1.begin(servo1, 20);   
 
-  //servoEaser1.easeTo(0, 500);
-  //servoEaser.useMicroseconds( true );  // fine-control mode
-  //
   
   pinMode(SERVO2, OUTPUT); 
   servo2.attach(SERVO2);
+  servoEaser2.useMicroseconds( true ); 
   servoEaser2.begin(servo2, 20);    
   
   pinMode(SERVO3, OUTPUT);
   servo3.attach(SERVO3); 
+  servoEaser3.useMicroseconds( true ); 
   servoEaser3.begin(servo3, 20);
     
   pinMode(COMPASS_PIN, OUTPUT);
@@ -123,7 +122,7 @@ void updateServo1() {
             Serial.print("Servo1: ");
             Serial.println(servoPos1);
             //if (servoEaser1.hasArrived()) {  
-              servoEaser1.easeTo( servoPos1, 500 );
+              servoEaser1.easeTo( servoPos1, 300 );
           //}
         }
           //else {Serial.println("NO SERVO1 ARG");}
@@ -132,19 +131,18 @@ void updateServo1() {
 
 void updateServo2() {
       if (state != "OFF") {
-        if (servoEaser2.hasArrived()) { 
+        //if (servoEaser2.hasArrived()) { 
         int s;
         char *arg;
         arg = sCmd.next();
         if (arg != NULL) {
-          s = atoi(arg);
-          servoPos2 = s;//constrain(s, -14, 166);
+        s = atoi(arg);
+        servoPos2 = s;//constrain(s, -14, 166);
              
-              //servoEaser2.easeTo( servoPos2, 100 );
-              servo2.write(servoPos2);
-              Serial.print("Servo2 : ");
-              Serial.println(servoPos2);
-         }
+        servoEaser2.easeTo( servoPos2, 300 );
+        //servo2.write(servoPos2);
+        Serial.print("Servo2 : ");
+        Serial.println(servoPos2);
         }
           //else {Serial.println("NO SERVO1 ARG");}
     }
@@ -152,7 +150,7 @@ void updateServo2() {
 
 void updateServo3() {
       if (state != "OFF") {
-        if (servoEaser3.hasArrived()) {
+        //if (servoEaser3.hasArrived()) {
          int s;
           char *arg;
           arg = sCmd.next();
@@ -162,8 +160,8 @@ void updateServo3() {
             servoPos3 = s;//constrain(s, -14, 166);
             Serial.print("Servo3: ");
             Serial.println(servoPos3);
-            servoEaser3.easeTo( servoPos3, 100 );
-          }
+            servoEaser3.easeTo( servoPos3, 700 );
+          //}
           //else {Serial.println("NO SERVO1 ARG");}
     }
     }
@@ -193,7 +191,7 @@ void updateVoltmeter() {
       arg = sCmd.next();
       if (arg != NULL) {
         v = atoi(arg);   
-        volt_pos = map(v, 0, 32, 0, 220);
+        volt_pos = map(v, 0, 127, 0, 220);
         //volt_pos = constrain(volt_pos, 0, 220);
         analogWrite(VOLTMETER, volt_pos);
         Serial.println(volt_pos);
@@ -230,9 +228,9 @@ void indicators_off() {
   }
 
 void indicators_on() {
-   servoEaser1.easeTo(servoPos1, 300);
-   servoEaser2.easeTo(servoPos2, 300);
-   servoEaser3.easeTo(servoPos3, 300);  
+   servoEaser1.easeTo(servoPos1, 500);
+   servoEaser2.easeTo(servoPos2, 500);
+   servoEaser3.easeTo(servoPos3, 500);  
    compass.write(compass_pos);
    analogWrite(VOLTMETER, volt_pos);
   }

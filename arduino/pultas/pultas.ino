@@ -47,7 +47,7 @@ String state = "OFF";//TODO -- replace
 int on_state = LOW;
 unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
-ResponsiveAnalogRead fader1_pot(FADER1, false, 0.05);
+ResponsiveAnalogRead fader1_pot(FADER1, true, 0.05);
 ResponsiveAnalogRead fader2_pot(FADER2, true, 0.05);
 ResponsiveAnalogRead fader3_pot(FADER3, true, 0.05);
 ResponsiveAnalogRead voltm_pot(VOLTMETER, true);
@@ -259,7 +259,7 @@ void updateVoltm() {
   //Serial.println("Raw voltm value: ");
   //Serial.println(v);
 
-  voltm = map(v, 0, 1022, 32, 0);
+  voltm = map(v, 0, 1022, 127, 0);
   Serial.print("VOLTM  ");
   Serial.println(voltm);
   } 
