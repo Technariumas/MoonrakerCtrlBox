@@ -220,9 +220,9 @@ void active_leds_off() {
   }
 
 void indicators_off() {
-   servo1.write(0);
-   servo2.write(0);
-   servo3.write(0);
+   servo1.write(162);
+   servo2.write(160);
+   servo3.write(175);
    compass.write(0);
    analogWrite(VOLTMETER, 0);
   }
@@ -276,13 +276,10 @@ void update_state() {
 }
 
 void loop() {
-  if (state != "OFF") {
     servoEaser1.update();
     servoEaser2.update();
     servoEaser3.update();
     compassEaser.update();
-    
-  }
   sCmd.readSerial();
   debouncer.update();
   if ( debouncer.fell() ) {

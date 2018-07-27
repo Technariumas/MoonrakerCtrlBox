@@ -37,7 +37,7 @@ int fader_low = 0;
 int fader_high = 166;
 
 int voltm_low = 0;
-int voltm_high = 32;
+int voltm_high = 127;
 
 
 int blinkRate = 300;
@@ -230,7 +230,7 @@ void updateF1() {
   //Serial.println("Raw ServoPot1 value: ");
   //Serial.println(f1);
 
-  fader1 = map(f1, 0, 1022, fader_high, fader_low);
+  fader1 = map(f1, 0, 1022, fader_low, 162);
   Serial.print("SERVO1 ");
   Serial.println(fader1);
   }  
@@ -240,7 +240,7 @@ void updateF2() {
   //Serial.println("Raw ServoPot2 value: ");
   //Serial.println(f2);
 
-  fader2 = map(f2, 0, 1022, fader_high, fader_low);
+  fader2 = map(f2, 0, 1022, fader_low, 160);
   Serial.print("SERVO2 ");
   Serial.println(fader2);
   } 
@@ -249,7 +249,7 @@ void updateF3() {
   int f3 = fader3_pot.getValue();
   //Serial.println("Raw ServoPot3 value: ");
   //Serial.println(f3);
-  fader3 = map(f3, 0, 1022, fader_high, fader_low);
+  fader3 = map(f3, 0, 1022, fader_low, 175);
   Serial.print("SERVO3 ");
   Serial.println(fader3);
   } 
