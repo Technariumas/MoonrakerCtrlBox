@@ -37,12 +37,12 @@ int volt_pos = 0;
 
 //Six control LEDs
 
-#define GREEN1 2
-#define GREEN2 3
-#define GREEN3 4
-#define RED1 5
-#define RED2 6
-#define RED3 7
+#define GREEN1 5
+#define GREEN2 6
+#define GREEN3 7
+#define RED1 2
+#define RED2 3
+#define RED3 4
 
 //Backlight, passive LEDs, voltmeter, MS
 
@@ -220,17 +220,24 @@ void active_leds_off() {
   }
 
 void indicators_off() {
-   servo1.write(162);
-   servo2.write(160);
-   servo3.write(175);
+   //servo1.write(0);
+   servoEaser1.update();
+   servoEaser1.easeTo(162, 1000);
+   servoEaser2.update();
+   servoEaser2.easeTo(160, 1000);
+   servoEaser3.update();   
+   servoEaser3.easeTo(175, 1000);
    compass.write(0);
    analogWrite(VOLTMETER, 0);
   }
 
 void indicators_on() {
-   servo1.write(servoPos1);
-   servo2.write(servoPos2);
-   servo3.write(servoPos3);
+   servoEaser1.update();
+   servoEaser1.easeTo( servoPos1, 1000 );
+   servoEaser2.update();
+   servoEaser2.easeTo( servoPos2, 1000 );
+   servoEaser3.update();
+   servoEaser3.easeTo( servoPos3, 1000 );
    compass.write(compass_pos);
    analogWrite(VOLTMETER, volt_pos);
   }
@@ -241,6 +248,7 @@ void red_leds_on() {
   digitalWrite(RED2, HIGH);
   digitalWrite(RED3, HIGH);
   }
+
 
 void main_switch_on() {
       state = "ON";

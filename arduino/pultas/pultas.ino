@@ -259,7 +259,7 @@ void updateVoltm() {
   //Serial.println("Raw voltm value: ");
   //Serial.println(v);
 
-  voltm = map(v, 0, 1022, 127, 0);
+  voltm = map(v, 0, 1022, 100, 0);
   Serial.print("VOLTM  ");
   Serial.println(voltm);
   } 
